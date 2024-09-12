@@ -18,6 +18,37 @@ const register = async (req, res) => {
             8. Devolver un mensaje de error si algo falló guardando al usuario (status 500)
         
     */
+
+    const { usuario } = req.body;
+    if (!usuario) {
+        return res.status(400).json({ error: "Falta el campo usuario" });
+    }
+
+    const { nombre, apellido, email, password } = usuario;
+    if (!nombre || !apellido || !email || !password) {
+        return res.status(400).json({ error: "Faltan campos obligatorios" });
+    }
+
+    const usuarioExistente = await UsuariosService.buscarPorEmail(email);
+    if (usuarioExistente) {
+        return res.status(400).json({ error: "El email ya está registrado" });
+    }
+
+    const salt = bcrypt.genSaltSync(11);
+    const hash = bcrypt.hashSync(password, salt);
+    const nuevoUsuario = {
+        nombre,
+        apellido,
+        email,
+        password: hash,
+    };
+
+    try {
+        await UsuariosService.crear(nuevoUsuario);
+        return res.status(201).json({ mensaje: "Usuario creado con éxito" });
+    } catch (error) {
+        return res.status(500).json({ error: "Error al crear el usuario" });
+    }
 };
 
 const login = async (req, res) => {
@@ -36,6 +67,24 @@ const login = async (req, res) => {
             8. Devolver un mensaje de error si algo falló (status 500)
         
     */
+
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: "Faltan campos obligatorios" });
+    }
+
+    const usuarioExistente = await UsuariosService.buscarPorEmail(email);
+    if (!usuarioExistente) {
+        return res.status(400).json({ error: "Usuario no encontrado" });
+    }
+
+    const passwordCorrecto = bcrypt.compareSync(password, usuarioExistente.password);
+    if (!passwordCorrecto) {
+        return res.status(400).json({ error: "Contraseña incorrecta" });
+    }
+
+    const token = jwt.sign({ id: usuarioExistente.id }, process.env.SECRET_KEY);
+    return res.status(200).json({ usuario: usuarioExistente, token });
 };
 
 export default { register, login };
