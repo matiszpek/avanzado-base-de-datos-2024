@@ -14,6 +14,24 @@ export const verifyToken = async (req, res, next) => {
     
         Recordar también que si sucede cualquier error en este proceso, deben devolver un error 401 (Unauthorized)
     */
+    if (!req.headers.authorization) {
+        return res.status(401).json({ error: "Falta el token de autorización" });
+    }
+    if (!req.headers.authorization.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Formato de token inválido" });
+    }
+    const token = req.headers.authorization.split(" ")[1];
+    try {
+        const { id } = jwt.verify(token, process.env.JWT_SECRET);
+        req.idUsuario = id;
+        next();
+    } catch (error) {
+        return res.status(401).json({ error: "Token inválido" });
+    }
+    if (!req.idUsuario) {
+        return res.status(401).json({ error: "Token inválido" });
+    }
+    
 };
 
 export const verifyAdmin = async (req, res, next) => {
@@ -26,4 +44,9 @@ export const verifyAdmin = async (req, res, next) => {
             2. Si no lo es, devolver un error 403 (Forbidden)
     
     */
+    const usuario = await UsuariosService.buscarPorId(req.idUsuario);
+    if (!usuario || !usuario.admin) {
+        return res.status(403).json({ error: "Acceso denegado" });
+    }
+    next();
 };
