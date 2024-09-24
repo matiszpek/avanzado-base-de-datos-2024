@@ -44,7 +44,7 @@ export const verifyAdmin = async (req, res, next) => {
             2. Si no lo es, devolver un error 403 (Forbidden)
     
     */
-    const usuario = await UsuariosService.buscarPorId(req.idUsuario);
+    const usuario = await UsuariosService.getUsuarioById(req.idUsuario);
     if (!usuario || !usuario.admin) {
         return res.status(403).json({ error: "Acceso denegado" });
     }

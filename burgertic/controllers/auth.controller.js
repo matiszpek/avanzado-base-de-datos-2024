@@ -29,7 +29,7 @@ const register = async (req, res) => {
         return res.status(400).json({ error: "Faltan campos obligatorios" });
     }
 
-    const usuarioExistente = await UsuariosService.buscarPorEmail(email);
+    const usuarioExistente = await UsuariosService.getUsuarioByEmail(email);
     if (usuarioExistente) {
         return res.status(400).json({ error: "El email ya está registrado" });
     }
@@ -44,7 +44,7 @@ const register = async (req, res) => {
     };
 
     try {
-        await UsuariosService.crear(nuevoUsuario);
+        await UsuariosService.createUsuario(nuevoUsuario);
         return res.status(201).json({ mensaje: "Usuario creado con éxito" });
     } catch (error) {
         return res.status(500).json({ error: "Error al crear el usuario" });
@@ -73,7 +73,7 @@ const login = async (req, res) => {
         return res.status(400).json({ error: "Faltan campos obligatorios" });
     }
 
-    const usuarioExistente = await UsuariosService.buscarPorEmail(email);
+    const usuarioExistente = await UsuariosService.getUsuarioByEmail(email);
     if (!usuarioExistente) {
         return res.status(400).json({ error: "Usuario no encontrado" });
     }
