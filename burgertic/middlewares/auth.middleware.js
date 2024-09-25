@@ -26,8 +26,9 @@ export const verifyToken = async (req, res, next) => {
         req.idUsuario = id;
         next();
     } catch (error) {
-        console.log(JWT_SECRET);
+        console.log("bbbb");
         console.log(error.message);
+        console.log(process.env.JWT_SECRET);
         return res.status(401).json({ error: "Token inválido" });
     }
     if (!req.idUsuario) {
