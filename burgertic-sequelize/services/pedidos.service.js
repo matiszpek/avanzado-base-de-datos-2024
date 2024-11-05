@@ -30,6 +30,18 @@ const getPlatosByPedido = async (idPedido) => {
             })
         );
 
+        //paso a squelize, prueba1
+        /*  const result = await Promise.all(
+            rows.map(async (plato) => {
+                const plato = await Plato.findByPk(plato.id_plato);
+                return {
+                    ...plato.dataValues,
+                    cantidad: plato.cantidad,
+                };
+            })
+        ); */
+
+
         await client.end();
         return result;
     } catch (error) {
