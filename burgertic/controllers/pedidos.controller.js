@@ -27,7 +27,7 @@ const getPedidosByUser = async (req, res) => {
         Recordar que para cumplir con toda la funcionalidad deben:
 
             1. Utilizar el servicio de pedidos para obtener los pedidos del usuario
-            2. Si el usuario no tiene pedidos, devolver un mensaje de error (status 404)
+            2. Si el usuario no tiene pedidos, devolver una lista vacía (status 200)
             3. Si el usuario tiene pedidos, devolver un json con los pedidos (status 200)
             4. Devolver un mensaje de error si algo falló (status 500)
         
