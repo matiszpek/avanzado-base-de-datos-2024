@@ -1,5 +1,7 @@
 import { config } from "../db.js";
 import pkg from "pg";
+import pedidos, { Pedido } from "../models/pedidos.model.js";
+import platopedidos, {PlatosXPedidos} from "../models/platopedidos.model.js";
 const { Client } = pkg;
 
 const getPlatosByPedido = async (idPedido) => {
@@ -7,19 +9,13 @@ const getPlatosByPedido = async (idPedido) => {
     await client.connect();
 
     try {
-        const { rows } = await client.query(
-            "SELECT * FROM pedidos_platos WHERE id_pedido = $1",
-            [idPedido]
-        );
+        const {rows}= await platopedidos.findAll({"where": {'id':idPedido}});
 
         if (rows.length < 1) throw new Error("Pedido no encontrado");
 
         const result = await Promise.all(
             rows.map(async (plato) => {
-                const { rows } = await client.query(
-                    "SELECT * FROM platos WHERE id = $1",
-                    [plato.id_plato]
-                );
+                const {rows}=await platos.findAll({"where": {'id':id_plato}})
 
                 if (rows.length < 1) throw new Error("Plato no encontrado");
 
@@ -29,18 +25,6 @@ const getPlatosByPedido = async (idPedido) => {
                 };
             })
         );
-
-        //paso a squelize, prueba1
-        /*  const result = await Promise.all(
-            rows.map(async (plato) => {
-                const plato = await Plato.findByPk(plato.id_plato);
-                return {
-                    ...plato.dataValues,
-                    cantidad: plato.cantidad,
-                };
-            })
-        ); */
-
 
         await client.end();
         return result;
@@ -55,7 +39,7 @@ const getPedidos = async () => {
     await client.connect();
 
     try {
-        const { rows } = await client.query("SELECT * FROM pedidos");
+        const { rows } = await Pedido.findAll()
 
         if (rows.length < 1) return [];
 
@@ -82,11 +66,7 @@ const getPedidoById = async (id) => {
     await client.connect();
 
     try {
-        const { rows } = await client.query(
-            "SELECT * FROM pedidos WHERE id = $1",
-            [id]
-        );
-
+        const { rows } = await Pedido.findAll({"where": {'id':id}})
         if (rows.length < 1) return null;
 
         const result = rows[0];
@@ -106,10 +86,7 @@ const getPedidosByUser = async (idUsuario) => {
     await client.connect();
 
     try {
-        const { rows } = await client.query(
-            "SELECT * FROM pedidos WHERE id_usuario = $1",
-            [idUsuario]
-        );
+        const { rows } = await Pedido.findAll({"where": {'id_usuario':idUsuario}});
 
         if (rows.length < 1) return [];
 
@@ -143,34 +120,34 @@ const createPedido = async (idUsuario, platos) => {
 
         // Así, no hace falta introducir el concepto de transacciones o rollback
 
-        const { rows } = await client.query(
+        /* const { rows } = await client.query(
             "INSERT INTO pedidos (id_usuario, fecha, estado) VALUES ($1, $2, 'pendiente') RETURNING id",
             [idUsuario, new Date()]
-        );
-
-        const idPedido = rows[0].id;
-
-        for (let plato of platos) {
-            const { rows } = await client.query(
-                "SELECT * FROM platos WHERE id = $1",
-                [plato.id]
-            );
-
+        ); */
+        const pedido = await pedidos.create({
+            id_usuario: idUsuario,
+            fecha: new Date(),
+            estado: "pendiente",
+        });
+        const idPedido = pedido.id;
+        
+        for (const plato of platos) {
             if (rows.length < 1) {
-                await client.query("DELETE FROM pedidos WHERE id = $1", [
-                    idPedido,
-                ]);
-                await client.query(
-                    "DELETE FROM pedidos_platos WHERE id_pedido = $1",
-                    [idPedido]
-                );
+                pedido.destroy();
+                PlatosXPedidos.destroy()
                 throw new Error("Plato no encontrado");
             }
 
-            await client.query(
+            /* await client.query(
                 "INSERT INTO pedidos_platos (id_pedido, id_plato, cantidad) VALUES ($1, $2, $3)",
                 [idPedido, plato.id, plato.cantidad]
-            );
+            ); */ //esto se hace solo con el modulo de sqlize ya que ya estan relacionadas las tablas
+
+            PlatosXPedidos.addplatos({
+                idPedido:idPedido,
+                id_plato:plato.id,
+                cantidad:plato.cantidad
+            })
         }
 
         await client.end();
@@ -193,10 +170,7 @@ const updatePedido = async (id, estado) => {
     await client.connect();
 
     try {
-        const { rows } = await client.query(
-            "UPDATE pedidos SET estado = $1 WHERE id = $2",
-            [estado, id]
-        );
+        const { rows } = await Pedido.update({'estado':estado},{"where": {'id':id}});
 
         await client.end();
         return rows;
@@ -211,10 +185,7 @@ const deletePedido = async (id) => {
     await client.connect();
 
     try {
-        const { rows } = await client.query(
-            "DELETE FROM pedidos WHERE id = $1",
-            [id]
-        );
+        const { rows } = await Pedido.destroy({"where": {'id':id}});
 
         await client.end();
         return rows;
