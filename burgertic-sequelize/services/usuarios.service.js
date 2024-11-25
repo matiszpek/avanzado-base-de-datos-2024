@@ -1,74 +1,28 @@
-import { config } from "../db.js";
-import pkg from "pg";
-const { Client } = pkg;
 import { Usuario } from "../models/usuarios.model.js";
 
 const getUsuarioByEmail = async (email) => {
-    const client = new Client(config);
-    await client.connect();
-
-    try {
-       /*  const { rows } = await client.query(
-            "SELECT * FROM usuarios WHERE email = $1",
-            [email]
-        );
-        if (rows.length < 1) return null; */
-        const {rows}= await Usuario.findAll({"where": {'email':email}});
-
-        if (rows.length < 1) return null;
-
-        await client.end();
-        return rows[0];
-    } catch (error) {
-        await client.end();
-        throw error;
-    }
+    const usuario = await Usuario.findAll({"where": {'email':email}});
+    if (!usuario) return null;
+    return usuario;
 };
 
 const getUsuarioById = async (id) => {
-    const client = new Client(config);
-    await client.connect();
-
-    try {
-/*         const { rows } = await client.query(
-            "SELECT * FROM usuarios WHERE id = $1",
-            [id]
-        ); */
-        const {rows}= await Usuario.findAll({"where": {'id':id}});
-
-        if (rows.length < 1) return null;
-
-        await client.end();
-        return rows[0];
-    } catch (error) {
-        await client.end();
-        throw error;
-    }
+    const usuario = await Usuario.findAll({"where": {'id':id}});
+    if (!usuario) return null;
+    return usuario;
 };
 
 const createUsuario = async (usuario) => {
-    const client = new Client(config);
-    await client.connect();
-
-    try {
-/*         const { rows } = await client.query(
-            "INSERT INTO usuarios (nombre, apellido, email, password, admin) VALUES ($1, $2, $3, $4, false)",
-            [usuario.nombre, usuario.apellido, usuario.email, usuario.password]
-        ); */
-        const {rows}= await Usuario.create({
+    const newUsuario = await Usuario.create(
+        {
             nombre: usuario.nombre,
             apellido: usuario.apellido,
             email: usuario.email,
             password: usuario.password,
-            admin: false,
-        });
-
-        await client.end();
-        return rows;
-    } catch (error) {
-        await client.end();
-        throw error;
-    }
+            admin: usuario.admin,
+        }
+    );
+    return newUsuario;
 };
 
 export default { getUsuarioByEmail, getUsuarioById, createUsuario };

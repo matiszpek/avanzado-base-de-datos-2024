@@ -2,24 +2,28 @@ import { Plato } from "../models/platos.model.js";
 
 const getPlatos = async () => await Plato.findAll();
 
-const getPlatoById = async (id) =>
-    await Plato.findAll({
-        where: {
-            id: id,
-        },
-    });
+const getPlatoById = async (id) =>{
 
-const createPlato = async (plato) =>
-    Plato.create({
-        tipo: plato.tipo,
-        nombre: plato.nombre,
-        precio: plato.precio,
-        descripcion: plato.descripcion,
-    });
+    const plato = await Plato.findAll( {"where": {'id':id}});
+    if (!plato) throw new Error("Plato no encontrado");
+    return plato;
+}
+    
 
+const createPlato = async (plato) =>{
+    const newPlato = await Plato.create(
+        {
+            tipo: plato.tipo,
+            nombre: plato.nombre,
+            precio: plato.precio,
+            descripcion: plato.descripcion,
+        }
+    );
+    return newPlato;
+}
+    
 const updatePlato = async (id, newData) => {
-    const plato = await Plato.findByPk(id);
-
+    const plato = await Plato.findAll( {"where": {'id':id}});
     if (!plato) throw new Error("Plato no encontrado");
 
     plato.tipo = newData.tipo;
@@ -31,15 +35,18 @@ const updatePlato = async (id, newData) => {
 };
 
 const deletePlato = async (id) => {
-    const plato = await Plato.findByPk(id);
-
+    const plato = await Plato.findAll( {"where": {'id':id}});
     if (!plato) throw new Error("Plato no encontrado");
 
     await plato.destroy();
 };
 
-const getPlatosByTipo = async (tipo) =>
-    Plato.findAll({ where: { tipo: tipo } });
+const getPlatosByTipo = async (tipo) =>{
+    const platos = await Plato.findAll( {"where": {'tipo':tipo}});
+    if (!platos) throw new Error("Plato no encontrado");
+    return platos;
+}
+    
 
 export default {
     getPlatos,

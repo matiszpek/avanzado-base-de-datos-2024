@@ -1,151 +1,113 @@
 import { config } from "../db.js";
-import pkg from "pg";
 import { Pedido } from "../models/pedidos.model.js";
 import { PlatosXPedidos } from "../models/PlatosXPedidos.js";
-const { Client } = pkg;
 
 
-// Lean, no se que devolver en los que son solo await, updates y deletes no tengo rows para devolver
-
+//hola lean, como va.
+// si estas aca es seguro porque no corrio bien el codigo 
+//y la posta es que no lo puede correr porque no me anda node. espero que ande porque no lo voy a testear 
+// saludos y suerte corriguiendo el codigo
+//pd: soy lucas
 
 
 const getPlatosByPedido = async (idPedido) => {
-    const client = new Client(config);
-    await client.connect();
-
     try {
-        const pedido= await Pedido.getPedidoById(idPedido)
-        const platos= pedido.getPlatos()
+        const pedido= await Pedido.findAll( {"where": {'id':idPedido}})
+        if (!pedido) throw new Error("Pedido no encontrado");
+        
+        const platosiD = await PlatosXPedidos.findAll( {"where": {'id_pedido':idPedido}})
+        if (platosiD.length < 1) throw new Error("no tiene platos este pedido");
 
-        if (platos.length< 1) throw new Error("Pedido no encontrado");
-
-        await client.end();
-        return platos;
+        return platosiD.map((p) => ({
+            pedidoId: p.id_pedido,
+            cantidad: p.cantidad,
+        }));
+        
     } catch (error) {
-        await client.end();
         throw error;
     }
 };
 
 const getPedidos = async () => {
-    const client = new Client(config);
-    await client.connect();
-
     try {
         const pedidos= await Pedido.findAll()
-
+        
         if (pedidos.length < 1) return [];
 
-        const result = await Promise.all(
-            rows.map(async (pedido) => {
-                const platos = await getPlatosByPedido(pedido.id);
-                return {
-                    ...pedido,
-                    platos,
-                };
-            })
+        return Promise.all(
+            pedidos.map(async (p) => ({
+                id: p.id,
+                idUsuario: p.UsuarioId,
+                fecha: p.fecha,
+                estado: p.estado,
+                platos: await getPlatosByPedido(p.id),
+            }))
         );
 
-        await client.end();
-        return result;
     } catch (error) {
-        await client.end();
         throw error;
     }
 };
 
 const getPedidoById = async (id) => {
-    const client = new Client(config);
-    await client.connect();
-
     try {
+        const pedido= await Pedido.findAll( {"where": {'id':id}})
+        if (!pedido) throw new Error("Pedido no encontrado");
 
-
-        result = await getPlatosByPedido(id);
-
-        await client.end();
-        return result;
+        return {
+            id: pedido.id,
+            idUsuario: pedido.UsuarioId,
+            fecha: pedido.fecha,
+            estado: pedido.estado,
+            platos: await getPlatosByPedido(pedido.id),
+          };        
     } catch (error) {
-        await client.end();
         throw error;
     }
 };
 
 const getPedidosByUser = async (idUsuario) => {
-    const client = new Client(config);
-    await client.connect();
-
     try {
-            const result= await Pedido.getPedidosByUser(idUsuario)
-            if (result.length < 1) return [];
+        const pedidos= await Pedido.findAll( {"where": {'UsuarioId':idUsuario}})
+        if (pedidos.length < 1) return [];
+        
+        
+        return Promise.all(
+            pedidos.map(async (p) => ({
+                id: p.id,
+                idUsuario: p.UsuarioId,
+                fecha: p.fecha,
+                estado: p.estado,
+                platos: await getPlatosByPedido(p.id),
+            }))
+        );
 
-        await client.end();
-        return result;
     } catch (error) {
-        await client.end();
         throw error;
     }
 };
 
 const createPedido = async (idUsuario, platos) => {
-    const client = new Client(config);
-    await client.connect();
-
     try {
-        // ACÁ SE PODRÍA HACER EN ETAPAS
-        // 1. Validar que los platos existan
-        // 2. Crear el pedido
-        // 3. Agregar los platos al pedido
-
-        // Así, no hace falta introducir el concepto de transacciones o rollback
-
-        /* const { rows } = await client.query(
-            "INSERT INTO pedidos (id_usuario, fecha, estado) VALUES ($1, $2, 'pendiente') RETURNING id",
-            [idUsuario, new Date()]
-        ); */
-        const pedido = await Pedido.create({
-            id_usuario: idUsuario,
-            fecha: new Date(),
-            estado: "pendiente",
-        });
-            /* await client.query(
-                "INSERT INTO pedidos_platos (id_pedido, id_plato, cantidad) VALUES ($1, $2, $3)",
-                [idPedido, plato.id, plato.cantidad]
-            ); */ //esto se hace solo con el modulo de sqlize ya que ya estan relacionadas las tablas
-
-            for (const plato of platos) {
-                await PlatosXPedidos.create({
-                    id_pedido: pedido.id,
-                    id_plato: plato.id,
-                    cantidad: plato.cantidad,
-                });
-            }
-
-        await client.end();
+        
+        const pedido = await Pedido.create({ UsuarioId: idUsuario, fecha: new Date(), estado: "pendiente" });
+        await Promise.all(
+            platos.map((plato) =>
+                PlatosXPedidos.create({ id_pedido: pedido.id, id_plato: plato.id, cantidad: plato.cantidad })
+            )
+        );
         return pedido;
     } catch (error) {
-        await client.end();
         throw error;
     }
 };
 
 const updatePedido = async (id, estado) => {
-    if (
-        estado !== "aceptado" &&
-        estado !== "en camino" &&
-        estado !== "entregado"
-    )
-        throw new Error("Estado inválido");
-
-    const client = new Client(config);
-    await client.connect();
-
+    if (estado !== "aceptado" && estado !== "en camino" && estado !== "entregado")throw new Error("Estado inválido");
     try {
         Pedido.update({'estado':estado},{"where": {'id':id}});
-        await client.end();
         return;
     } catch (error) {
-        await client.end();
         throw error;
     }
 };
@@ -155,12 +117,9 @@ const deletePedido = async (id) => {
     await client.connect();
 
     try {
-    await Pedido.destroy({"where": {'id':id}});
-
-        await client.end();
+        await Pedido.destroy({"where": {'id':id}}); 
         return;
     } catch (error) {
-        await client.end();
         throw error;
     }
 };
