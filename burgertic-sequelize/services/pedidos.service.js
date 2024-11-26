@@ -34,7 +34,7 @@ const getPedidos = async () => {
         return Promise.all(
             pedidos.map(async (p) => ({
                 id: p.id,
-                idUsuario: p.UsuarioId,
+                id_usuario: p.id_usuario,
                 fecha: p.fecha,
                 estado: p.estado,
                 platos: await getPlatosByPedido(p.id),
@@ -53,7 +53,7 @@ const getPedidoById = async (id) => {
 
         return {
             id: pedido.id,
-            idUsuario: pedido.UsuarioId,
+            id_usuario: pedido.id_usuario,
             fecha: pedido.fecha,
             estado: pedido.estado,
             platos: await getPlatosByPedido(pedido.id),
@@ -63,16 +63,15 @@ const getPedidoById = async (id) => {
     }
 };
 
-const getPedidosByUser = async (idUsuario) => {
+const getPedidosByUser = async (id_usuario) => {
     try {
-        const pedidos= await Pedido.findAll( {"where": {'UsuarioId':idUsuario}})
+        const pedidos= await Pedido.findAll( {"where": {'id_usuario':id_usuario}})
         if (pedidos.length < 1) return [];
         
-        // pedidos.getPlatos()
         return Promise.all(
             pedidos.map(async (p) => ({
                 id: p.id,
-                idUsuario: p.UsuarioId,
+                id_usuario: p.id_usuario,
                 fecha: p.fecha,
                 estado: p.estado,
                 platos: await getPlatosByPedido(p.id),
@@ -116,16 +115,13 @@ const updatePedido = async (id, estado) => {
 };
 
 const deletePedido = async (id) => {
-    const client = new Client(config);
-    await client.connect();
-
-    try {
-        await Pedido.destroy({"where": {'id':id}}); 
-        return;
-    } catch (error) {
-        throw error;
-    }
+    const pedido = await Pedido.findByPk(id);
+    if (!pedido) throw new Error("Pedido no encontrado");
+    
+    await pedido.destroy();
+    return pedido;
 };
+
 
 export default {
     getPedidos,
