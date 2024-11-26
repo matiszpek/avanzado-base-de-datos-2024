@@ -65,18 +65,7 @@ const getPedidoById = async (id) => {
 
 const getPedidosByUser = async (id_usuario) => {
     try {
-        const pedidos= await Pedido.findAll( {"where": {'id_usuario':id_usuario}})
-        if (pedidos.length < 1) return [];
-        
-        return Promise.all(
-            pedidos.map(async (p) => ({
-                id: p.id,
-                id_usuario: p.id_usuario,
-                fecha: p.fecha,
-                estado: p.estado,
-                platos: await getPlatosByPedido(p.id),
-            }))
-        );
+        return getPedidoById(id_usuario);
 
     } catch (error) {
         throw error;
