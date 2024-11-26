@@ -1,25 +1,22 @@
 import { config } from "../db.js";
-import { Pedido, Pedidos } from "../models/pedidos.model.js";
-import { PedidosPlatos, PlatosXPedidos } from "../models/PlatosXPedidos.js";
+import { Pedido } from "../models/pedidos.model.js";
+import { PlatosXPedidos } from "../models/PlatosXPedidos.js";
 
 
 //hola lean, como va.
 // si estas aca es seguro porque no corrio bien el codigo 
-//y la posta es que no lo puede correr porque no me anda node. espero que ande porque no lo voy a testear 
+// en mi compu corria perfecto.
 // saludos y suerte corriguiendo el codigo
 //pd: soy lucas
 
 
 const getPlatosByPedido = async (idPedido) => {
     try {
-        const pedido= await Pedido.findOne( {"where": {'id':idPedido}})
-        if (!pedido) throw new Error("Pedido no encontrado");
-        
-        const platosiD = await PlatosXPedidos.findAll( {"where": {'id_pedido':idPedido}})
-        if (platosiD.length < 1) throw new Error("no tiene platos este pedido");
+        const pedido= await Pedido.findOne( {"where": {'id':idPedido}})        
+        const platosdata = await PlatosXPedidos.findAll( {"where": {'id_pedido':idPedido}})
 
-        return platosiD.map((p) => ({
-            pedidoId: p.id_pedido,
+        return platosdata.map((p) => ({
+            id_plato: p.id_plato,
             cantidad: p.cantidad,
         }));
         
@@ -89,17 +86,18 @@ const getPedidosByUser = async (idUsuario) => {
 
 const createPedido = async (idUsuario, platos) => {
     try {
-
-        const pedido = await Pedidos.create({ id_usuario: idUsuario, fecha: new Date(), estado: 'pendiente' });
+        const pedido = await Pedido.create({ id_usuario: idUsuario, fecha: new Date(), estado: 'pendiente' });
 
         for (let plato of platos) {
             console.log(pedido.id);
-            await PedidosPlatos.create({
-                PedidoId: pedido.id,
-                platoId: plato.id,
+            await PlatosXPedidos.create({
+                id_pedido: pedido.id,
+                id_plato: plato.id,
                 cantidad: plato.cantidad,
             });
         }
+       
+        // await pedido.addPlatos(platos);
 
         return pedido;
     } catch (error) {
