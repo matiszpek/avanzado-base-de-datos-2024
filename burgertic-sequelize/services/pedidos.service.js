@@ -1,6 +1,6 @@
 import { config } from "../db.js";
-import { Pedido } from "../models/pedidos.model.js";
-import { PlatosXPedidos } from "../models/PlatosXPedidos.js";
+import { Pedido, Pedidos } from "../models/pedidos.model.js";
+import { PedidosPlatos, PlatosXPedidos } from "../models/PlatosXPedidos.js";
 
 
 //hola lean, como va.
@@ -12,7 +12,7 @@ import { PlatosXPedidos } from "../models/PlatosXPedidos.js";
 
 const getPlatosByPedido = async (idPedido) => {
     try {
-        const pedido= await Pedido.findAll( {"where": {'id':idPedido}})
+        const pedido= await Pedido.findOne( {"where": {'id':idPedido}})
         if (!pedido) throw new Error("Pedido no encontrado");
         
         const platosiD = await PlatosXPedidos.findAll( {"where": {'id_pedido':idPedido}})
@@ -51,7 +51,7 @@ const getPedidos = async () => {
 
 const getPedidoById = async (id) => {
     try {
-        const pedido= await Pedido.findAll( {"where": {'id':id}})
+        const pedido= await Pedido.findOne( {"where": {'id':id}})
         if (!pedido) throw new Error("Pedido no encontrado");
 
         return {
@@ -71,7 +71,7 @@ const getPedidosByUser = async (idUsuario) => {
         const pedidos= await Pedido.findAll( {"where": {'UsuarioId':idUsuario}})
         if (pedidos.length < 1) return [];
         
-        
+        // pedidos.getPlatos()
         return Promise.all(
             pedidos.map(async (p) => ({
                 id: p.id,
@@ -89,13 +89,18 @@ const getPedidosByUser = async (idUsuario) => {
 
 const createPedido = async (idUsuario, platos) => {
     try {
-        
-        const pedido = await Pedido.create({ UsuarioId: idUsuario, fecha: new Date(), estado: "pendiente" });
-        await Promise.all(
-            platos.map((plato) =>
-                PlatosXPedidos.create({ id_pedido: pedido.id, id_plato: plato.id, cantidad: plato.cantidad })
-            )
-        );
+
+        const pedido = await Pedidos.create({ id_usuario: idUsuario, fecha: new Date(), estado: 'pendiente' });
+
+        for (let plato of platos) {
+            console.log(pedido.id);
+            await PedidosPlatos.create({
+                PedidoId: pedido.id,
+                platoId: plato.id,
+                cantidad: plato.cantidad,
+            });
+        }
+
         return pedido;
     } catch (error) {
         throw error;

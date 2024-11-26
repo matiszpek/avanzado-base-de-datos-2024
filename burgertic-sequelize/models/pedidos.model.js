@@ -1,16 +1,16 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../db.js";
 
-export class Pedido extends Model {}
+export class Pedidos extends Model {}
 
-Pedido.init(
+Pedidos.init(
     {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
         },
-        id_usuario: { //foreign key
+        id_usuario: { 
             type: DataTypes.INTEGER,
         },
         fecha: {
@@ -22,7 +22,7 @@ Pedido.init(
     },
     {
         sequelize,
-        modelName: "pedidos",
+        modelName: "Pedidos",
         timestamps: false,
     }
 );

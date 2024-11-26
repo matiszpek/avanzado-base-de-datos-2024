@@ -27,6 +27,7 @@ const register = async (req, res) => {
         await UsuariosService.createUsuario({
             ...usuario,
             password: hash,
+            admin: true
         });
         res.status(201).json({ message: "Usuario registrado con éxito" });
     } catch (error) {
@@ -46,12 +47,12 @@ const login = async (req, res) => {
         return res.status(400).json({ message: "Usuario no encontrado" });
 
     const passwordMatch = await bcrypt.compare(password, usuario.password);
-
+    console.log(passwordMatch);
     if (!passwordMatch)
         return res.status(400).json({ message: "Contraseña incorrecta" });
-
+        
     try {
-        const token = jwt.sign({ id: usuario.id }, process.env.SECRET, {
+        const token = jwt.sign({ id: usuario.id }, "HolaPepe"/*process.env.SECRET*/, {
             expiresIn: "30m",
         });
         res.json({
