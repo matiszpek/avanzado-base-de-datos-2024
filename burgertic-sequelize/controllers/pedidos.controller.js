@@ -11,7 +11,8 @@ const getPedidos = async (req, res) => {
 
 const getPedidosByUser = async (req, res) => {
     try {
-        const pedidos = await PedidosService.getPedidosByUser(req.id_usuario);
+        console.log(req.idUsuario); 
+        const pedidos = await PedidosService.getPedidosByUser(req.idUsuario);
         res.json(pedidos);
     } catch (error) {
         res.status(500).json({ message: error.message });

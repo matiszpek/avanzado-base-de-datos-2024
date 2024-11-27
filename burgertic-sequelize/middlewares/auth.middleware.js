@@ -19,7 +19,7 @@ export const verifyToken = async (req, res, next) => {
 
         if (!decoded.id)
             return res.status(401).json({ message: "Token inválido" });
-
+        console.log(decoded.id);
         req.idUsuario = decoded.id;
 
         next();

@@ -16,7 +16,7 @@ const getPlatosByPedido = async (idPedido) => {
         const platosdata = await PlatosXPedidos.findAll( {"where": {'id_pedido':idPedido}})
 
         return platosdata.map((p) => ({
-            id_plato: p.id_plato,
+            id: p.id_plato,
             cantidad: p.cantidad,
         }));
         
@@ -65,7 +65,19 @@ const getPedidoById = async (id) => {
 
 const getPedidosByUser = async (id_usuario) => {
     try {
-        return getPedidoById(id_usuario);
+        
+        console.log(id_usuario);
+        const pedidos= await Pedido.findAll( {"where": {'id_usuario':id_usuario}})
+
+        return Promise.all(
+            pedidos.map(async (p) => ({
+                id: p.id,
+                id_usuario: p.id_usuario,
+                fecha: p.fecha,
+                estado: p.estado,
+                platos: await getPlatosByPedido(p.id),
+            }))
+        );
 
     } catch (error) {
         throw error;
