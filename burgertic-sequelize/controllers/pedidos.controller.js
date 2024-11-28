@@ -11,7 +11,6 @@ const getPedidos = async (req, res) => {
 
 const getPedidosByUser = async (req, res) => {
     try {
-        console.log(req.idUsuario); 
         const pedidos = await PedidosService.getPedidosByUser(req.idUsuario);
         res.json(pedidos);
     } catch (error) {
@@ -55,7 +54,6 @@ const createPedido = async (req, res) => {
 
     if (error) return;
 
-    console.log(req.idUsuario)
     try {
         await PedidosService.createPedido(req.idUsuario, platos);
         res.json({ message: "Pedido creado con éxito" });
@@ -71,7 +69,7 @@ const aceptarPedido = async (req, res) => {
 
     try {
         const pedido = await PedidosService.getPedidoById(id);
-        console.log(pedido);
+
         if (!pedido)
             return res.status(404).json({ message: "Pedido no encontrado" });
         if (pedido.estado !== "pendiente")
