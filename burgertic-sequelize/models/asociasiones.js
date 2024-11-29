@@ -1,8 +1,8 @@
-import { Pedido } from "./pedidos.model";
-import { Plato } from "./platos.model";
-import { PlatosXPedidos } from "./PlatosXPedidos";
-import { Usuario } from "./usuarios.model";
-import { sequelize } from "../db";
+import { Pedido } from "./pedidos.model.js";
+import { Plato } from "./platos.model.js";
+import { PlatosXPedidos } from "./PlatosXPedidos.js";
+import { Usuario } from "./usuarios.model.js";
+import { sequelize } from "../db.js";
 
 export const defModelos = async () => {
     Pedido.belongsToMany(Plato, { through: PlatosXPedidos });

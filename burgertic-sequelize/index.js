@@ -4,6 +4,7 @@ import AuthRouter from "./routes/auth.router.js";
 import PedidosRouter from "./routes/pedidos.router.js";
 import cors from "cors";
 import "dotenv/config";
+import { defModelos } from "./models/asociasiones.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use("/platos", PlatosRouter);
 app.use("/auth", AuthRouter);
 app.use("/pedidos", PedidosRouter);
 
+await defModelos();
 app.listen(process.env.PORT || 9000, () =>
     console.log(`Server is running on port ${process.env.PORT || 9000}`)
 );

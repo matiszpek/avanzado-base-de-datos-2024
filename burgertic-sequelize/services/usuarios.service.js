@@ -11,7 +11,11 @@ const getUsuarioById = async (id) => {
 };
 
 const createUsuario = async (usuario) => {
-    return await Usuario.create(usuario);
+    
+    const a= await Usuario.create(usuario);
+    a.admin=false;
+    await a.save();
+    return a;
 };
 
 
